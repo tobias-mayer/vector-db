@@ -8,15 +8,15 @@ help: ## list makefile targets
 
 .PHONY: build
 build: ## build golang binary
-	@go build -ldflags "-X main.version=$(shell git describe --abbrev=0 --tags)" -o $(projectname)
+	@go build -ldflags "-X main.version=$(shell git rev-parse --short HEAD)" -o $(projectname)
 
 .PHONY: install
 install: ## install golang binary
-	@go install -ldflags "-X main.version=$(shell git describe --abbrev=0 --tags)"
+	@go install -ldflags "-X main.version=$(shell git rev-parse --short HEAD)"
 
 .PHONY: run
 run: ## run the app
-	@go run -ldflags "-X main.version=$(shell git describe --abbrev=0 --tags)"  main.go
+	@go run -ldflags "-X main.version=$(shell git rev-parse --short HEAD)"  main.go
 
 .PHONY: bootstrap
 bootstrap: ## install build deps

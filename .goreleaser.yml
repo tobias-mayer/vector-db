@@ -35,7 +35,7 @@ nfpms:
       - vector-db
     vendor: tobias-mayer
     homepage:  https://github.com/tobias-mayer/vector-db
-    maintainer: "Tom Morelly <tommorelly@gmail.com>"
+    maintainer: "tobias-mayer"
     description: "A general purpose golang CLI template for Github and Gitlab"
     license: GPL-3.0
     formats:
