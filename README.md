@@ -27,7 +27,7 @@ A simple vector database that can be used to search for similar vectors in logar
 
 ```sh
 $> vector-db -h
-golang-cli project template demo application
+vector-db
 
 Usage:
   vector-db [flags]
