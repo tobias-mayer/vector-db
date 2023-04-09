@@ -38,7 +38,7 @@ func (treeNode *treeNode) build(dataPoints []*DataPoint) {
 	// otherwise we have found a leaf node -> left and right stay nil, items are populated with the dp ids
 	treeNode.items = make([]int, len(dataPoints))
 	for i, dp := range dataPoints {
-		treeNode.items[i] = dp.id
+		treeNode.items[i] = dp.Id
 	}
 }
 
@@ -48,7 +48,7 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 
 	for _, dp := range dataPoints {
 		// split datapoints into left and right halves based on the metric
-		if treeNode.index.CalcDirectionPriority(treeNode.normalVec, dp.embedding) < 0 {
+		if treeNode.index.DirectionPriority(treeNode.normalVec, dp.Embedding) < 0 {
 			leftDataPoints = append(leftDataPoints, dp)
 		} else {
 			rightDataPoints = append(rightDataPoints, dp)
@@ -58,16 +58,26 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	if len(leftDataPoints) < treeNode.index.MaxItemsPerLeafNode || len(rightDataPoints) < treeNode.index.MaxItemsPerLeafNode {
 		treeNode.items = make([]int, len(dataPoints))
 		for i, dp := range dataPoints {
-			treeNode.items[i] = dp.id
+			treeNode.items[i] = dp.Id
 		}
 		return
 	}
 
-	leftChild := newTreeNode(treeNode.index, treeNode.index.GetSplittingVector(leftDataPoints))
+	vsLeft := make([][]float64, len(leftDataPoints))
+	for i, it := range leftDataPoints {
+		vsLeft[i] = it.Embedding
+	}
+
+	leftChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(vsLeft))
 	leftChild.build(leftDataPoints)
 	treeNode.left = leftChild
 
-	rightChild := newTreeNode(treeNode.index, treeNode.index.GetSplittingVector(rightDataPoints))
+	vsRight := make([][]float64, len(rightDataPoints))
+	for i, it := range rightDataPoints {
+		vsRight[i] = it.Embedding
+	}
+
+	rightChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(vsRight))
 	rightChild.build(rightDataPoints)
 	treeNode.right = rightChild
 
