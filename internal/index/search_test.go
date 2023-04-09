@@ -10,10 +10,6 @@ import (
 	"github.com/bmizerany/assert"
 )
 
-// This unit test is made to verify if our algorithm can correctly find
-// the `exact` neighbors. That is done by checking the ratio of exact
-// neighbors in the result returned by `getANNbyVector` is less than
-// the given threshold.
 // nolint: funlen, gocognit, cyclop, gosec
 func TestAnnSearchAccuracy(t *testing.T) {
 	for i, c := range []struct {
