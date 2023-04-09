@@ -6,7 +6,6 @@ A simple vector database that can be used to search for similar vectors in logar
 <br>
 <img src="https://github.com/tobias-mayer/vector-db/actions/workflows/test.yml/badge.svg" alt="drawing"/>
 <img src="https://github.com/tobias-mayer/vector-db/actions/workflows/lint.yml/badge.svg" alt="drawing"/>
-<img src="https://pkg.go.dev/badge/github.com/tobias-mayer/vector-db.svg" alt="drawing"/>
 <a href="https://codecov.io/gh/tobias-mayer/vector-db" >
 <img src="https://codecov.io/gh/tobias-mayer/vector-db/branch/master/graph/badge.svg?token=V3XINHNCKM"/>
 </a>
@@ -35,7 +34,6 @@ Usage:
   vector-db [command]
 
 Available Commands:
-  completion  Generate the autocompletion script for the specified shell
   start       Start the vector-db
   help        Help about any command
   version     vector-db version
