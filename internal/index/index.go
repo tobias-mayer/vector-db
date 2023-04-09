@@ -83,13 +83,13 @@ func (vi *VectorIndex) Build() {
 }
 
 // nolint: funlen
-func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, bucketScale float64) ([]int, error) {
+func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) ([]int, error) {
 	if len(input) != vi.NumberOfDimensions {
 		return nil, errShapeMismatch
 	}
 
-	bucketSize := int(float64(searchNum) * bucketScale)
-	annMap := make(map[int]struct{}, bucketSize)
+	totalBucketSize := int(float64(searchNum) * numberOfBuckets)
+	annMap := make(map[int]struct{}, totalBucketSize)
 	pq := priorityQueue{}
 
 	// insert root nodes into pq
@@ -100,7 +100,7 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, bucketScal
 	heap.Init(&pq)
 
 	// search all trees until we found enough data points
-	for pq.Len() > 0 && len(annMap) < bucketSize {
+	for pq.Len() > 0 && len(annMap) < totalBucketSize {
 		q, _ := heap.Pop(&pq).(*queueItem)
 		n, ok := vi.IDToNodeMapping[q.value]
 
@@ -128,7 +128,6 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, bucketScal
 	}
 
 	// calculate actual distances
-	// take care of duplicates?
 	idToDist := make(map[int]float64, len(annMap))
 	ann := make([]int, 0, len(annMap))
 
