@@ -10,61 +10,11 @@ import (
 	"github.com/bmizerany/assert"
 )
 
-// func TestIndex_GetANNbyVector(t *testing.T) {
-// 	for i, c := range []struct {
-// 		dim, num, nTree, k int
-// 	}{
-// 		{dim: 2, num: 1000, nTree: 10, k: 2},
-// 		{dim: 10, num: 100, nTree: 5, k: 10},
-// 		{dim: 1000, num: 10000, nTree: 5, k: 10},
-// 	} {
-// 		c := c
-// 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-// 			rawItems := make(PointNArray, c.num)
-// 			for i := range rawItems {
-// 				v := make([]float64, c.dim)
-
-// 				var norm float64
-// 				for j := range v {
-// 					cof := rand.Float64() - 0.5
-// 					v[j] = cof
-// 					norm += cof * cof
-// 				}
-
-// 				norm = math.Sqrt(norm)
-// 				for j := range v {
-// 					v[j] /= norm
-// 				}
-
-// 				rawItems[i] = v
-// 			}
-
-// 			m, err := NewCosineMetric(c.dim)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-
-// 			idx, err := CreateNewIndex(rawItems, c.dim, c.nTree, c.k, m)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-
-// 			key := make(PointN, c.dim)
-// 			for i := range key {
-// 				key[i] = rand.Float64() - 0.5
-// 			}
-
-// 			if _, err = idx.GetANNbyVector(key, 10, 2); err != nil {
-// 				t.Fatal(err)
-// 			}
-// 		})
-// 	}
-// }
-
 // This unit test is made to verify if our algorithm can correctly find
 // the `exact` neighbors. That is done by checking the ratio of exact
 // neighbors in the result returned by `getANNbyVector` is less than
 // the given threshold.
+// nolint: funlen, gocognit, cyclop, gosec
 func TestAnnSearchAccuracy(t *testing.T) {
 	for i, c := range []struct {
 		k, dim, num, nTree, searchNum int
@@ -90,6 +40,7 @@ func TestAnnSearchAccuracy(t *testing.T) {
 		},
 	} {
 		c := c
+
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
 			rawItems := make([]*DataPoint, c.num)
 			for i := range rawItems {
@@ -157,81 +108,6 @@ func TestAnnSearchAccuracy(t *testing.T) {
 	}
 }
 
-var (
-	dim    = 3
-	nTrees = 2
-	k      = 10
-	nItem  = 100000
-)
-
-// func TestNearestGann(t *testing.T) {
-
-// 	rawItems := make(PointR3Array, 0, nItem)
-// 	var lat, lon float64
-// 	for i := 0; i < nItem; i++ {
-// 		lat = float64(rand.Intn(200000)-100000) * 0.0009
-// 		lon = float64(rand.Intn(200000)-100000) * 0.0018
-// 		pt := NewPointR3(lat, lon)
-// 		rawItems = append(rawItems, pt)
-// 	}
-// 	m, err := NewCosineMetric(dim)
-// 	if err != nil {
-// 		// err handling
-// 		return
-// 	}
-// 	// create index
-// 	idx, err := CreateNewIndex(rawItems, dim, 1, k, m)
-// 	if err != nil {
-// 		// error handling
-// 		return
-// 	}
-// 	// search
-// 	var searchNum = 5
-// 	var bucketScale float64 = 10
-
-// 	for i := 0; i < 3; i++ {
-// 		lat = float64(rand.Intn(200000)-100000) * 0.0009
-// 		lon = float64(rand.Intn(200000)-100000) * 0.0018
-// 		pt := NewPointR3(lat, lon)
-// 		res, err := idx.GetANNbyVector(pt, searchNum, bucketScale)
-// 		log.Println(err, res)
-// 	}
-// }
-
-// func BenchmarkNearestGann(b *testing.B) {
-// 	b.StopTimer()
-// 	rawItems := make(PointNArray, 0, nItem)
-// 	var lat, lon float64
-// 	for i := 0; i < nItem; i++ {
-// 		lat = float64(rand.Intn(200000)-100000) * 0.0009
-// 		lon = float64(rand.Intn(200000)-100000) * 0.0018
-// 		pt := R3OfLocation(lat, lon)
-// 		rawItems = append(rawItems, pt[:])
-// 	}
-// 	m, err := NewCosineMetric(dim)
-// 	if err != nil {
-// 		// err handling
-// 		return
-// 	}
-// 	// create index
-// 	idx, err := CreateNewIndex(rawItems, dim, 1, k, m)
-// 	if err != nil {
-// 		// error handling
-// 		return
-// 	}
-// 	// search
-// 	var searchNum = 5
-// 	var bucketScale float64 = 10
-
-// 	b.StartTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		lat = float64(rand.Intn(200000)-100000) * 0.0009
-// 		lon = float64(rand.Intn(200000)-100000) * 0.0018
-// 		pt := NewPointR3(lat, lon)
-// 		_, _ = idx.GetANNbyVector(pt, searchNum, bucketScale)
-// 	}
-// }
-
 func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
 	for i, c := range []struct {
 		v1, v2 []float64
@@ -252,6 +128,7 @@ func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
 		},
 	} {
 		c := c
+
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
 			idx, _ := NewVectorIndex(1, 1, 1, nil)
 			actual := idx.DirectionPriority(c.v1, c.v2)
@@ -260,6 +137,7 @@ func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
 	}
 }
 
+// nolint: gosec
 func TestCosineDistance_GetSplittingVector(t *testing.T) {
 	for i, c := range []struct {
 		dim, num int
@@ -269,6 +147,7 @@ func TestCosineDistance_GetSplittingVector(t *testing.T) {
 		},
 	} {
 		c := c
+
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
 			vs := make([][]float64, c.num)
 			for i := 0; i < c.num; i++ {
@@ -284,7 +163,7 @@ func TestCosineDistance_GetSplittingVector(t *testing.T) {
 				dp[i] = NewDataPoint(i, vs[i])
 			}
 			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
-			idx.GetNormalVector(vs)
+			idx.GetNormalVector(dp)
 		})
 	}
 }
@@ -309,6 +188,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 		},
 	} {
 		c := c
+
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
 			dp := make([]*DataPoint, 2)
 			dp[0] = NewDataPoint(0, c.v1)

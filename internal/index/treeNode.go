@@ -3,8 +3,8 @@ package index
 import "github.com/google/uuid"
 
 type treeNode struct {
-	nodeId string
-	index  *vectorIndex
+	nodeID string
+	index  *VectorIndex
 	// normal vector defining the hyper plane represented by the node
 	// splits the search space into two halves represented by the left and right child in the tree
 	normalVec []float64
@@ -17,9 +17,9 @@ type treeNode struct {
 	items []int
 }
 
-func newTreeNode(index *vectorIndex, normalVec []float64) *treeNode {
+func newTreeNode(index *VectorIndex, normalVec []float64) *treeNode {
 	return &treeNode{
-		nodeId:    uuid.New().String(),
+		nodeID:    uuid.New().String(),
 		index:     index,
 		normalVec: normalVec,
 		left:      nil,
@@ -32,13 +32,14 @@ func (treeNode *treeNode) build(dataPoints []*DataPoint) {
 		// if the current subspace contains more datapoints than MaxItemsPerLeafNode,
 		// we need to split it into two new subspaces
 		treeNode.buildSubtree(dataPoints)
+
 		return
 	}
 
 	// otherwise we have found a leaf node -> left and right stay nil, items are populated with the dp ids
 	treeNode.items = make([]int, len(dataPoints))
 	for i, dp := range dataPoints {
-		treeNode.items[i] = dp.Id
+		treeNode.items[i] = dp.ID
 	}
 }
 
@@ -58,31 +59,20 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	if len(leftDataPoints) < treeNode.index.MaxItemsPerLeafNode || len(rightDataPoints) < treeNode.index.MaxItemsPerLeafNode {
 		treeNode.items = make([]int, len(dataPoints))
 		for i, dp := range dataPoints {
-			treeNode.items[i] = dp.Id
+			treeNode.items[i] = dp.ID
 		}
+
 		return
 	}
 
-	vsLeft := make([][]float64, len(leftDataPoints))
-	for i, it := range leftDataPoints {
-		vsLeft[i] = it.Embedding
-	}
-
-	leftChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(vsLeft))
+	leftChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(leftDataPoints))
 	leftChild.build(leftDataPoints)
 	treeNode.left = leftChild
 
-	vsRight := make([][]float64, len(rightDataPoints))
-	for i, it := range rightDataPoints {
-		vsRight[i] = it.Embedding
-	}
-
-	rightChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(vsRight))
+	rightChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(rightDataPoints))
 	rightChild.build(rightDataPoints)
 	treeNode.right = rightChild
 
-	// treeNode.index.mux.Lock()
-	treeNode.index.IdToNodeMapping[leftChild.nodeId] = leftChild
-	treeNode.index.IdToNodeMapping[rightChild.nodeId] = rightChild
-	// treeNode.index.mux.Unlock()
+	treeNode.index.IDToNodeMapping[leftChild.nodeID] = leftChild
+	treeNode.index.IDToNodeMapping[rightChild.nodeID] = rightChild
 }
