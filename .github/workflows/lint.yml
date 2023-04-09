@@ -23,5 +23,6 @@ jobs:
         with:
           version: v1.52.2
           args: -c .golang-ci.yml -v --timeout=5m
+          skip-go-installation: true
         env:
           GO111MODULES: off
