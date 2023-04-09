@@ -22,7 +22,6 @@ A simple vector database that can be used to search for similar vectors in logar
 - [Demo Application](#demo-application)
 - [Makefile Targets](#makefile-targets)
 
-
 <!--te-->
 
 # Demo Application
