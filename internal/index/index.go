@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	imath "github.com/tobias-mayer/vector-db/internal/math"
 )
 
 const (
@@ -31,6 +32,7 @@ type VectorIndex struct {
 	IDToNodeMapping      map[string]*treeNode
 	IDToDataPointMapping map[int]*DataPoint
 	DataPoints           []*DataPoint
+	DistanceMeasure      DistanceMeasure
 }
 
 func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint) (*VectorIndex, error) {
@@ -59,6 +61,7 @@ func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNo
 		IDToDataPointMapping: idToDataPointMapping,
 		IDToNodeMapping:      map[string]*treeNode{},
 		DataPoints:           dataPoints,
+		DistanceMeasure:      NewCosineDistanceMeasure(),
 	}, nil
 }
 
@@ -116,14 +119,14 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 			continue
 		}
 
-		dp := vi.DirectionPriority(n.normalVec, input)
+		dp := vi.DistanceMeasure.DirectionPriority(n.normalVec, input)
 		heap.Push(&pq, &queueItem{
 			value:    n.left.nodeID,
-			priority: max(q.priority, dp),
+			priority: imath.Max(q.priority, dp),
 		})
 		heap.Push(&pq, &queueItem{
 			value:    n.right.nodeID,
-			priority: max(q.priority, -dp),
+			priority: imath.Max(q.priority, -dp),
 		})
 	}
 
@@ -133,7 +136,7 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 
 	for id := range annMap {
 		ann = append(ann, id)
-		idToDist[id] = vi.CalcDistance(vi.IDToDataPointMapping[id].Embedding, input)
+		idToDist[id] = vi.DistanceMeasure.CalcDistance(vi.IDToDataPointMapping[id].Embedding, input)
 	}
 
 	// sort the found items by their actual distance
@@ -160,41 +163,29 @@ const (
 	cosineMetricsCentroidCalcRatio = 0.0001
 )
 
-func (vi *VectorIndex) CalcDistance(v1, v2 []float64) float64 {
-	var ret float64
-	for i := range v1 {
-		ret += v1[i] * v2[i]
-	}
-
-	return -ret
-}
-
+// GetNormalVector calculates the normal vector of a hyperplane that separates
+// the two clusters of data points.
 // nolint: funlen, gocognit, cyclop, gosec
 func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 	lvs := len(dataPoints)
-	// init centroids
-	k := rand.Intn(lvs)
-	l := rand.Intn(lvs - 1)
+	// Initialize two centroids randomly from the data points.
+	c0, c1 := vi.getRandomCentroids(dataPoints)
 
-	if k == l {
-		l++
-	}
-
-	c0 := dataPoints[k].Embedding
-	c1 := dataPoints[l].Embedding
-
+	// Repeat the two-means clustering algorithm until the two clusters are
+	// sufficiently separated or a maximum number of iterations is reached.
 	for i := 0; i < cosineMetricsMaxIteration; i++ {
+		// Create a map from cluster ID to a slice of vectors assigned to that
+		// cluster during clustering.
 		clusterToVecs := map[int][][]float64{}
 
-		iter := cosineMetricsMaxTargetSample
-		if len(dataPoints) < cosineMetricsMaxTargetSample {
-			iter = len(dataPoints)
-		}
+		// Randomly sample a subset of the data points.
+		iter := imath.Min(cosineMetricsMaxTargetSample, len(dataPoints))
 
+		// Assign each of the sampled vectors to the cluster with the nearest centroid.
 		for i := 0; i < iter; i++ {
 			v := dataPoints[rand.Intn(len(dataPoints))].Embedding
-			ip0 := vi.CalcDistance(c0, v)
-			ip1 := vi.CalcDistance(c1, v)
+			ip0 := vi.DistanceMeasure.CalcDistance(c0, v)
+			ip1 := vi.DistanceMeasure.CalcDistance(c1, v)
 
 			if ip0 > ip1 {
 				clusterToVecs[0] = append(clusterToVecs[0], v)
@@ -203,6 +194,9 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 			}
 		}
 
+		// Calculate the ratio of data points assigned to each cluster. If the
+		// ratio is below a threshold, the clustering is considered to be
+		// sufficiently separated, and the algorithm terminates.
 		lc0 := len(clusterToVecs[0])
 		lc1 := len(clusterToVecs[1])
 
@@ -211,21 +205,15 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 			break
 		}
 
-		// update centroids
+		// If one of the clusters has no data points assigned to it, re-initialize
+		// the centroids randomly and continue.
 		if lc0 == 0 || lc1 == 0 {
-			k := rand.Intn(lvs)
-			l := rand.Intn(lvs - 1)
-
-			if k == l {
-				l++
-			}
-
-			c0 = dataPoints[k].Embedding
-			c1 = dataPoints[l].Embedding
+			c0, c1 = vi.getRandomCentroids(dataPoints)
 
 			continue
 		}
 
+		// Update the centroids based on the data points assigned to each cluster
 		c0 = make([]float64, vi.NumberOfDimensions)
 		it0 := int(float64(lvs) * cosineMetricsCentroidCalcRatio)
 
@@ -245,8 +233,11 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 		}
 	}
 
+	// Create a new array to hold the resulting normal vector.
 	ret := make([]float64, vi.NumberOfDimensions)
 
+	// Calculate the normal vector by subtracting the coordinates of the second centroid from those of the first centroid.
+	// Store the resulting value in the corresponding coordinate of the ret slice.
 	for d := 0; d < vi.NumberOfDimensions; d++ {
 		v := c0[d] - c1[d]
 		ret[d] += v
@@ -255,19 +246,17 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 	return ret
 }
 
-func (vi *VectorIndex) DirectionPriority(base, target []float64) float64 {
-	var ret float64
-	for i := range base {
-		ret += base[i] * target[i]
+func (vi *VectorIndex) getRandomCentroids(dataPoints []*DataPoint) ([]float64, []float64) {
+	lvs := len(dataPoints)
+	k := rand.Intn(lvs)
+	l := rand.Intn(lvs - 1)
+
+	if k == l {
+		l++
 	}
 
-	return ret
-}
+	c0 := dataPoints[k].Embedding
+	c1 := dataPoints[l].Embedding
 
-func max(a, b float64) float64 {
-	if a < b {
-		return b
-	}
-
-	return a
+	return c0, c1
 }

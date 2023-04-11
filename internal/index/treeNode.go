@@ -49,7 +49,7 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 
 	for _, dp := range dataPoints {
 		// split datapoints into left and right halves based on the metric
-		if treeNode.index.DirectionPriority(treeNode.normalVec, dp.Embedding) < 0 {
+		if treeNode.index.DistanceMeasure.DirectionPriority(treeNode.normalVec, dp.Embedding) < 0 {
 			leftDataPoints = append(leftDataPoints, dp)
 		} else {
 			rightDataPoints = append(rightDataPoints, dp)

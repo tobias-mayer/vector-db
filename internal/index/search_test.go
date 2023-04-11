@@ -72,7 +72,7 @@ func TestAnnSearchAccuracy(t *testing.T) {
 			ids := make([]int64, len(rawItems))
 			for i, v := range rawItems {
 				ids[i] = int64(i)
-				aDist[int64(i)] = idx.CalcDistance(v.Embedding, query)
+				aDist[int64(i)] = idx.DistanceMeasure.CalcDistance(v.Embedding, query)
 			}
 			sort.Slice(ids, func(i, j int) bool {
 				return aDist[ids[i]] < aDist[ids[j]]
@@ -127,7 +127,7 @@ func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
 
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
 			idx, _ := NewVectorIndex(1, 1, 1, nil)
-			actual := idx.DirectionPriority(c.v1, c.v2)
+			actual := idx.DistanceMeasure.DirectionPriority(c.v1, c.v2)
 			assert.Equal(t, c.exp, actual)
 		})
 	}
@@ -191,7 +191,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 			dp[1] = NewDataPoint(1, c.v2)
 
 			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
-			actual := idx.CalcDistance(c.v1, c.v2)
+			actual := idx.DistanceMeasure.CalcDistance(c.v1, c.v2)
 			assert.Equal(t, c.exp, actual)
 		})
 	}
