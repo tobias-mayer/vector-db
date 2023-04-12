@@ -39,14 +39,14 @@ func main() {
 
 	index.Build()
 
-	res, err := index.SearchByVector([]float64{0.1, 0.9}, 5, 10.0)
+	searchResults, err := index.SearchByVector([]float64{0.1, 0.9}, 5, 10.0)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("The following vectors are the closest neighbors based on cosine similarity:")
-	for _, i := range res {
-		fmt.Println(data[i].Embedding)
+	for _, searchResult := range *searchResults {
+		fmt.Println(fmt.Sprintf("vector: %v, distance: %f", data[searchResult.ID].Embedding, searchResult.Distance))
 	}
 }

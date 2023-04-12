@@ -20,6 +20,11 @@ type DataPoint struct {
 	Embedding []float64
 }
 
+type SearchResult struct {
+	ID       int
+	Distance float64
+}
+
 func NewDataPoint(id int, embedding []float64) *DataPoint {
 	return &DataPoint{id, embedding}
 }
@@ -86,7 +91,7 @@ func (vi *VectorIndex) Build() {
 }
 
 // nolint: funlen
-func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) ([]int, error) {
+func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) (*[]SearchResult, error) {
 	if len(input) != vi.NumberOfDimensions {
 		return nil, errShapeMismatch
 	}
@@ -149,7 +154,12 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 		ann = ann[:searchNum]
 	}
 
-	return ann, nil
+	searchResults := make([]SearchResult, len(ann))
+	for i, id := range ann {
+		searchResults[i] = SearchResult{ID: id, Distance: math.Abs(idToDist[id])}
+	}
+
+	return &searchResults, nil
 }
 
 func (vi *VectorIndex) SearchByItem() ([]int, error) {
