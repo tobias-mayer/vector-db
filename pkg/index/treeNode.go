@@ -1,6 +1,9 @@
 package index
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	imath "github.com/tobias-mayer/vector-db/internal/math"
+)
 
 type treeNode struct {
 	nodeID string
@@ -49,7 +52,7 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 
 	for _, dp := range dataPoints {
 		// split datapoints into left and right halves based on the metric
-		if treeNode.index.DistanceMeasure.DirectionPriority(treeNode.normalVec, dp.Embedding) < 0 {
+		if imath.VectorDotProduct(treeNode.normalVec, dp.Embedding) < 0 {
 			leftDataPoints = append(leftDataPoints, dp)
 		} else {
 			rightDataPoints = append(rightDataPoints, dp)

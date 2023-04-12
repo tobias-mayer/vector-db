@@ -55,7 +55,7 @@ func TestIndex_SearchByVector(t *testing.T) {
 				rawItems[i] = NewDataPoint(i, v)
 			}
 
-			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, rawItems)
+			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, rawItems, NewCosineDistanceMeasure())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -127,7 +127,7 @@ func TestIndex_GetSplittingVector(t *testing.T) {
 			for i := 0; i < c.num; i++ {
 				dp[i] = NewDataPoint(i, vs[i])
 			}
-			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
+			idx, _ := NewVectorIndex(1, c.dim, 1, dp, NewCosineDistanceMeasure())
 			idx.GetNormalVector(dp)
 		})
 	}

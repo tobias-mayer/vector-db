@@ -31,7 +31,7 @@ func main() {
 		index.NewDataPoint(19, []float64{0.91, 0.12}),
 	}
 
-	index, err := index.NewVectorIndex(1, 2, 2, data)
+	index, err := index.NewVectorIndex(1, 2, 2, data, index.NewCosineDistanceMeasure())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(1)

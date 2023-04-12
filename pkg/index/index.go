@@ -40,7 +40,7 @@ type VectorIndex struct {
 	DistanceMeasure      DistanceMeasure
 }
 
-func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint) (*VectorIndex, error) {
+func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint, distanceMeasure DistanceMeasure) (*VectorIndex, error) {
 	if len(dataPoints) < minDataPointsRequired {
 		return nil, errInsufficientData
 	}
@@ -66,7 +66,7 @@ func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNo
 		IDToDataPointMapping: idToDataPointMapping,
 		IDToNodeMapping:      map[string]*treeNode{},
 		DataPoints:           dataPoints,
-		DistanceMeasure:      NewCosineDistanceMeasure(),
+		DistanceMeasure:      distanceMeasure,
 	}, nil
 }
 
@@ -124,7 +124,7 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 			continue
 		}
 
-		dp := vi.DistanceMeasure.DirectionPriority(n.normalVec, input)
+		dp := imath.VectorDotProduct(n.normalVec, input)
 		heap.Push(&pq, &queueItem{
 			value:    n.left.nodeID,
 			priority: imath.Max(q.priority, dp),

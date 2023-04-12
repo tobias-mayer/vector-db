@@ -4,22 +4,12 @@ import "math"
 
 type DistanceMeasure interface {
 	CalcDistance(v1, v2 []float64) float64
-	DirectionPriority(base, target []float64) float64
 }
 
 type cosineDistanceMeasure struct{}
 
 func NewCosineDistanceMeasure() DistanceMeasure {
 	return &cosineDistanceMeasure{}
-}
-
-func (cdm *cosineDistanceMeasure) DirectionPriority(base, target []float64) float64 {
-	var ret float64
-	for i := range base {
-		ret += base[i] * target[i]
-	}
-
-	return ret
 }
 
 func (cdm *cosineDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
@@ -45,4 +35,23 @@ func (cdm *cosineDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
 	}
 
 	return -dotProduct / (magA * magB)
+}
+
+type euclidianDistanceMeasure struct{}
+
+func NewEuclidianDistanceMeasure() DistanceMeasure {
+	return &euclidianDistanceMeasure{}
+}
+
+func (cdm *euclidianDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
+	if len(v1) != len(v2) || len(v1) == 0 {
+		return 0.0
+	}
+
+	sum := 0.0
+	for i := 0; i < len(v1); i++ {
+		diff := v1[i] - v2[i]
+		sum += diff * diff
+	}
+	return math.Sqrt(sum)
 }
