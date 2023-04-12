@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
+	itesting "github.com/tobias-mayer/vector-db/internal/testing"
 )
 
 func TestCosineDistance_CalcDistance(t *testing.T) {
@@ -17,13 +18,13 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 			v1:  []float64{1.2, 0.1},
 			v2:  []float64{-1.2, 0.2},
 			dim: 2,
-			exp: 1.42,
+			exp: 0.97,
 		},
 		{
 			v1:  []float64{1.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0},
 			v2:  []float64{-1.2, 0.2, 0, 0, 0, 0, 0, 0, 0, 0},
 			dim: 10,
-			exp: 1.42,
+			exp: 0.97,
 		},
 	} {
 		c := c
@@ -35,7 +36,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 
 			distanceMeasure := NewCosineDistanceMeasure()
 			actual := distanceMeasure.CalcDistance(c.v1, c.v2)
-			assert.Equal(t, c.exp, actual)
+			itesting.AlmostEqual(t, c.exp, actual, 1e-3)
 		})
 	}
 }

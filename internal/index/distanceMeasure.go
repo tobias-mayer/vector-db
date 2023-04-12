@@ -1,5 +1,7 @@
 package index
 
+import "math"
+
 type DistanceMeasure interface {
 	CalcDistance(v1, v2 []float64) float64
 	DirectionPriority(base, target []float64) float64
@@ -21,10 +23,26 @@ func (cdm *cosineDistanceMeasure) DirectionPriority(base, target []float64) floa
 }
 
 func (cdm *cosineDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
-	var ret float64
-	for i := range v1 {
-		ret += v1[i] * v2[i]
+	if len(v1) != len(v2) || len(v1) == 0 {
+		return 0.0
 	}
 
-	return -ret
+	dotProduct := 0.0
+	magA := 0.0
+	magB := 0.0
+
+	for i := 0; i < len(v1); i++ {
+		dotProduct += v1[i] * v2[i]
+		magA += v1[i] * v1[i]
+		magB += v2[i] * v2[i]
+	}
+
+	magA = math.Sqrt(magA)
+	magB = math.Sqrt(magB)
+
+	if magA == 0 || magB == 0 {
+		return 0.0
+	}
+
+	return -dotProduct / (magA * magB)
 }
