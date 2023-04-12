@@ -246,6 +246,7 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 	return ret
 }
 
+// nolint: gosec
 func (vi *VectorIndex) getRandomCentroids(dataPoints []*DataPoint) ([]float64, []float64) {
 	lvs := len(dataPoints)
 	k := rand.Intn(lvs)
