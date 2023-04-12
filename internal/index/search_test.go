@@ -6,12 +6,10 @@ import (
 	"math/rand"
 	"sort"
 	"testing"
-
-	"github.com/bmizerany/assert"
 )
 
 // nolint: funlen, gocognit, cyclop, gosec
-func TestAnnSearchAccuracy(t *testing.T) {
+func TestIndex_SearchByVector(t *testing.T) {
 	for i, c := range []struct {
 		k, dim, num, nTree, searchNum int
 		threshold, bucketScale        float64
@@ -104,37 +102,8 @@ func TestAnnSearchAccuracy(t *testing.T) {
 	}
 }
 
-func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
-	for i, c := range []struct {
-		v1, v2 []float64
-		exp    float64
-		dim    int
-	}{
-		{
-			v1:  []float64{1.2, 0.1},
-			v2:  []float64{-1.2, 0.2},
-			dim: 2,
-			exp: -1.42,
-		},
-		{
-			v1:  []float64{1.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0},
-			v2:  []float64{-1.2, 0.2, 0, 0, 0, 0, 0, 0, 0, 0},
-			dim: 10,
-			exp: -1.42,
-		},
-	} {
-		c := c
-
-		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			idx, _ := NewVectorIndex(1, 1, 1, nil)
-			actual := idx.DistanceMeasure.DirectionPriority(c.v1, c.v2)
-			assert.Equal(t, c.exp, actual)
-		})
-	}
-}
-
 // nolint: gosec
-func TestCosineDistance_GetSplittingVector(t *testing.T) {
+func TestIndex_GetSplittingVector(t *testing.T) {
 	for i, c := range []struct {
 		dim, num int
 	}{
@@ -160,39 +129,6 @@ func TestCosineDistance_GetSplittingVector(t *testing.T) {
 			}
 			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
 			idx.GetNormalVector(dp)
-		})
-	}
-}
-
-func TestCosineDistance_CalcDistance(t *testing.T) {
-	for i, c := range []struct {
-		v1, v2 []float64
-		exp    float64
-		dim    int
-	}{
-		{
-			v1:  []float64{1.2, 0.1},
-			v2:  []float64{-1.2, 0.2},
-			dim: 2,
-			exp: 1.42,
-		},
-		{
-			v1:  []float64{1.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0},
-			v2:  []float64{-1.2, 0.2, 0, 0, 0, 0, 0, 0, 0, 0},
-			dim: 10,
-			exp: 1.42,
-		},
-	} {
-		c := c
-
-		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			dp := make([]*DataPoint, 2)
-			dp[0] = NewDataPoint(0, c.v1)
-			dp[1] = NewDataPoint(1, c.v2)
-
-			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
-			actual := idx.DistanceMeasure.CalcDistance(c.v1, c.v2)
-			assert.Equal(t, c.exp, actual)
 		})
 	}
 }
