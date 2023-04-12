@@ -87,8 +87,8 @@ func TestIndex_SearchByVector(t *testing.T) {
 			}
 
 			var count int
-			for _, id := range ass {
-				if _, ok := expectedIDsMap[id]; ok {
+			for _, res := range *ass {
+				if _, ok := expectedIDsMap[res.ID]; ok {
 					count++
 				}
 			}
