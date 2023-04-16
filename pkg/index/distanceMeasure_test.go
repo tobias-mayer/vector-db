@@ -9,6 +9,7 @@ import (
 	itesting "github.com/tobias-mayer/vector-db/internal/testing"
 )
 
+// nolint: dupl
 func TestCosineDistance_CalcDistance(t *testing.T) {
 	for i, c := range []struct {
 		v1, v2 []float64
@@ -42,6 +43,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 	}
 }
 
+// nolint: dupl
 func TestEuclidianDistance_CalcDistance(t *testing.T) {
 	for i, c := range []struct {
 		v1, v2 []float64
@@ -75,6 +77,7 @@ func TestEuclidianDistance_CalcDistance(t *testing.T) {
 	}
 }
 
+// nolint: dupl
 func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
 	for i, c := range []struct {
 		v1, v2 []float64

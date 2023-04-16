@@ -13,6 +13,7 @@ import (
 
 const (
 	minDataPointsRequired = 2
+	DefaultBuckets        = 10.0
 )
 
 type DataPoint struct {
@@ -90,7 +91,7 @@ func (vi *VectorIndex) Build() {
 	}
 }
 
-// nolint: funlen
+// nolint: funlen, cyclop
 func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) (*[]SearchResult, error) {
 	if len(input) != vi.NumberOfDimensions {
 		return nil, errShapeMismatch

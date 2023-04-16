@@ -49,9 +49,11 @@ func (cdm *euclidianDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
 	}
 
 	sum := 0.0
+
 	for i := 0; i < len(v1); i++ {
 		diff := v1[i] - v2[i]
 		sum += diff * diff
 	}
+
 	return math.Sqrt(sum)
 }
