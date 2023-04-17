@@ -6,12 +6,10 @@ import (
 	"math/rand"
 	"sort"
 	"testing"
-
-	"github.com/bmizerany/assert"
 )
 
 // nolint: funlen, gocognit, cyclop, gosec
-func TestAnnSearchAccuracy(t *testing.T) {
+func TestIndex_SearchByVector(t *testing.T) {
 	for i, c := range []struct {
 		k, dim, num, nTree, searchNum int
 		threshold, bucketScale        float64
@@ -57,7 +55,7 @@ func TestAnnSearchAccuracy(t *testing.T) {
 				rawItems[i] = NewDataPoint(i, v)
 			}
 
-			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, rawItems)
+			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, rawItems, NewCosineDistanceMeasure())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -72,7 +70,7 @@ func TestAnnSearchAccuracy(t *testing.T) {
 			ids := make([]int64, len(rawItems))
 			for i, v := range rawItems {
 				ids[i] = int64(i)
-				aDist[int64(i)] = idx.CalcDistance(v.Embedding, query)
+				aDist[int64(i)] = idx.DistanceMeasure.CalcDistance(v.Embedding, query)
 			}
 			sort.Slice(ids, func(i, j int) bool {
 				return aDist[ids[i]] < aDist[ids[j]]
@@ -89,8 +87,8 @@ func TestAnnSearchAccuracy(t *testing.T) {
 			}
 
 			var count int
-			for _, id := range ass {
-				if _, ok := expectedIDsMap[id]; ok {
+			for _, res := range *ass {
+				if _, ok := expectedIDsMap[res.ID]; ok {
 					count++
 				}
 			}
@@ -104,37 +102,8 @@ func TestAnnSearchAccuracy(t *testing.T) {
 	}
 }
 
-func TestCosineDistance_CalcDirectionPriority(t *testing.T) {
-	for i, c := range []struct {
-		v1, v2 []float64
-		exp    float64
-		dim    int
-	}{
-		{
-			v1:  []float64{1.2, 0.1},
-			v2:  []float64{-1.2, 0.2},
-			dim: 2,
-			exp: -1.42,
-		},
-		{
-			v1:  []float64{1.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0},
-			v2:  []float64{-1.2, 0.2, 0, 0, 0, 0, 0, 0, 0, 0},
-			dim: 10,
-			exp: -1.42,
-		},
-	} {
-		c := c
-
-		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			idx, _ := NewVectorIndex(1, 1, 1, nil)
-			actual := idx.DirectionPriority(c.v1, c.v2)
-			assert.Equal(t, c.exp, actual)
-		})
-	}
-}
-
 // nolint: gosec
-func TestCosineDistance_GetSplittingVector(t *testing.T) {
+func TestIndex_GetSplittingVector(t *testing.T) {
 	for i, c := range []struct {
 		dim, num int
 	}{
@@ -158,41 +127,8 @@ func TestCosineDistance_GetSplittingVector(t *testing.T) {
 			for i := 0; i < c.num; i++ {
 				dp[i] = NewDataPoint(i, vs[i])
 			}
-			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
+			idx, _ := NewVectorIndex(1, c.dim, 1, dp, NewCosineDistanceMeasure())
 			idx.GetNormalVector(dp)
-		})
-	}
-}
-
-func TestCosineDistance_CalcDistance(t *testing.T) {
-	for i, c := range []struct {
-		v1, v2 []float64
-		exp    float64
-		dim    int
-	}{
-		{
-			v1:  []float64{1.2, 0.1},
-			v2:  []float64{-1.2, 0.2},
-			dim: 2,
-			exp: 1.42,
-		},
-		{
-			v1:  []float64{1.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0},
-			v2:  []float64{-1.2, 0.2, 0, 0, 0, 0, 0, 0, 0, 0},
-			dim: 10,
-			exp: 1.42,
-		},
-	} {
-		c := c
-
-		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			dp := make([]*DataPoint, 2)
-			dp[0] = NewDataPoint(0, c.v1)
-			dp[1] = NewDataPoint(1, c.v2)
-
-			idx, _ := NewVectorIndex(1, c.dim, 1, dp)
-			actual := idx.CalcDistance(c.v1, c.v2)
-			assert.Equal(t, c.exp, actual)
 		})
 	}
 }
