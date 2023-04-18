@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tobias-mayer/vector-db/internal/log"
 	"github.com/tobias-mayer/vector-db/pkg/index"
 )
 
@@ -30,6 +31,9 @@ func main() {
 		index.NewDataPoint(18, []float64{0.23, 0.81}),
 		index.NewDataPoint(19, []float64{0.91, 0.12}),
 	}
+
+	logger := log.New()
+	logger.Info("Test")
 
 	index, err := index.NewVectorIndex(1, 2, 2, data, index.NewCosineDistanceMeasure())
 	if err != nil {
