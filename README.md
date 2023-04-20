@@ -18,39 +18,36 @@ A simple vector database that can be used to search for similar vectors in logar
 <!--ts-->
 - [vector-db](#vector-db)
 - [Table of Contents](#table-of-contents)
-- [Demo Application](#demo-application)
+- [Examples](#examples)
+    - [Hello World](#hello-world)
+    - [HTTP Transport](#http-transport)
 - [Makefile Targets](#makefile-targets)
 
 <!--te-->
 
-# Demo Application
+# Examples
 
-
+### Hello World
 ```sh
 $> go run examples/helloworld/helloworld.go
-```
-<!-- ```sh
-$> vector-db -h
-vector-db
-
-Usage:
-  vector-db [flags]
-  vector-db [command]
-
-Available Commands:
-  start       Start the vector-db
-  help        Help about any command
-  version     vector-db version
-
-Flags:
-  -h, --help   help for vector-db
-
-Use "vector-db [command] --help" for more information about a command.
+Output:
+The following vectors are the closest neighbors based on cosine similarity:
+vector: [0.16 0.9], distance: 0.997870
+vector: [0.014 0.99], distance: 0.995346
+vector: [0.01 0.88], distance: 0.995074
+vector: [0.009 0.95], distance: 0.994885
+vector: [0 0.91], distance: 0.993884
 ```
 
+### HTTP Transport
 ```sh
-$> vector-db start
-``` -->
+$> go run examples/db/http.go
+$> curl -d '{"vector":[0.1, 0.9], "numberOfNeighbors":3}' -H "Content-Type: application/json" -X POST http://localhost:8080/search
+Output:
+{"vectors":[[0.16,0.9],[0.014,0.99],[0.01,0.88]],"distances":[0.9978698605247033,0.9953458731615661,0.9950743923646557]}
+```
+
+
 
 # Makefile Targets
 ```sh
