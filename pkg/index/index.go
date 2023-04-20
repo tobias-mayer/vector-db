@@ -24,6 +24,7 @@ type DataPoint struct {
 type SearchResult struct {
 	ID       int
 	Distance float64
+	Vector   []float64
 }
 
 func NewDataPoint(id int, embedding []float64) *DataPoint {
@@ -157,7 +158,7 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 
 	searchResults := make([]SearchResult, len(ann))
 	for i, id := range ann {
-		searchResults[i] = SearchResult{ID: id, Distance: math.Abs(idToDist[id])}
+		searchResults[i] = SearchResult{ID: id, Distance: math.Abs(idToDist[id]), Vector: vi.IDToDataPointMapping[id].Embedding}
 	}
 
 	return &searchResults, nil

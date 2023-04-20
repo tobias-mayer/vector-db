@@ -8,20 +8,29 @@ import (
 	"github.com/tobias-mayer/vector-db/pkg/index"
 )
 
-func StartHTTPServer(port int, vectorIndex *index.VectorIndex) {
-	address := fmt.Sprintf(":%v", port)
+type HTTPResource struct {
+	port        int
+	vectorIndex *index.VectorIndex
+}
+
+func NewHTTPServer(port int, vectorIndex *index.VectorIndex) *HTTPResource {
+	return &HTTPResource{port, vectorIndex}
+}
+
+func (r *HTTPResource) Initialize() error {
+	address := fmt.Sprintf(":%v", r.port)
 	router := gin.Default()
 
-	registerHandlers(router, vectorIndex)
+	router.POST("/forceRebuild", r.forceRebuild)
+	router.POST("/addVec", r.addVec)
+	router.POST("/search", r.search)
 
 	err := router.Run(address)
 	if err != nil {
 		fmt.Println("error starting http server: ", err)
 	}
-}
 
-type resource struct {
-	vectorIndex *index.VectorIndex
+	return nil
 }
 
 type AddVecRequest struct {
@@ -38,18 +47,10 @@ type SearchVecResponse struct {
 	Distances []float64   `json:"distances" binding:"required"`
 }
 
-func registerHandlers(router *gin.Engine, vectorIndex *index.VectorIndex) {
-	res := resource{vectorIndex}
-
-	router.POST("/forceRebuild", res.forceRebuild)
-	router.POST("/addVec", res.addVec)
-	router.POST("/search", res.search)
+func (r *HTTPResource) forceRebuild(_ *gin.Context) {
 }
 
-func (r *resource) forceRebuild(_ *gin.Context) {
-}
-
-func (r *resource) addVec(c *gin.Context) {
+func (r *HTTPResource) addVec(c *gin.Context) {
 	var addReq AddVecRequest
 	if err := c.ShouldBindJSON(&addReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -64,7 +65,7 @@ func (r *resource) addVec(c *gin.Context) {
 	}
 }
 
-func (r *resource) search(c *gin.Context) {
+func (r *HTTPResource) search(c *gin.Context) {
 	var searchReq SearchVecRequest
 	if err := c.ShouldBindJSON(&searchReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -86,7 +87,12 @@ func (r *resource) search(c *gin.Context) {
 	}
 
 	distances := make([]float64, len(*res))
-	searchResponse := SearchVecResponse{nil, distances}
+	vectors := make([][]float64, len(*res))
 
-	c.JSON(http.StatusCreated, searchResponse)
+	for i, r := range *res {
+		distances[i] = r.Distance
+		vectors[i] = r.Vector
+	}
+
+	c.JSON(http.StatusCreated, SearchVecResponse{vectors, distances})
 }

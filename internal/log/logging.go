@@ -26,12 +26,13 @@ type logger struct {
 type contextKey int
 
 const (
-	requestIdKey contextKey = iota
-	correlationIdKey
+	requestIDKey contextKey = iota
+	correlationIDKey
 )
 
 func New() Logger {
 	l, _ := zap.NewProduction()
+
 	return NewWithZap(l)
 }
 
@@ -41,20 +42,24 @@ func NewWithZap(l *zap.Logger) Logger {
 
 func NewForTest() (Logger, *observer.ObservedLogs) {
 	core, recorded := observer.New(zapcore.InfoLevel)
+
 	return NewWithZap(zap.New(core)), recorded
 }
 
 func (l *logger) With(ctx context.Context, args ...interface{}) Logger {
 	if ctx != nil {
-		if id, ok := ctx.Value(requestIdKey).(string); ok {
+		if id, ok := ctx.Value(requestIDKey).(string); ok {
 			args = append(args, zap.String("request_id", id))
 		}
-		if id, ok := ctx.Value(correlationIdKey).(string); ok {
+
+		if id, ok := ctx.Value(correlationIDKey).(string); ok {
 			args = append(args, zap.String("correlation_id", id))
 		}
 	}
+
 	if len(args) > 0 {
 		return &logger{l.SugaredLogger.With(args...)}
 	}
+
 	return l
 }
