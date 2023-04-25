@@ -227,10 +227,12 @@ func TestIndex_GetSplittingVector(t *testing.T) {
 	}
 }
 
+// nolint: gosec
 func randVec(dim int) []float64 {
 	v := make([]float64, dim)
 
 	var norm float64
+
 	for j := range v {
 		cof := rand.Float64() - 0.5
 		v[j] = cof

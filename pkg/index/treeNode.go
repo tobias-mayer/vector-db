@@ -76,13 +76,35 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	rightChild.build(rightDataPoints)
 	treeNode.right = rightChild
 
+	treeNode.items = make([]int, 0)
 	treeNode.index.IDToNodeMapping[leftChild.nodeID] = leftChild
 	treeNode.index.IDToNodeMapping[rightChild.nodeID] = rightChild
 }
 
-func (treeNode *treeNode) insert(vec *DataPoint) {
+func (treeNode *treeNode) insert(dpIndex int, dataPoint *DataPoint) {
 	// 1. find the corresponding leaf node
 	// -> two cases:
 	//    - insert into leaf node
 	//    - split data into two new leaf nodes
+
+	leaf := treeNode.findLeaf(dataPoint)
+	leaf.items = append(leaf.items, dpIndex)
+
+	if len(leaf.items) <= leaf.index.MaxItemsPerLeafNode {
+		return
+	}
+
+	// leaf.build()
+}
+
+func (treeNode *treeNode) findLeaf(dataPoint *DataPoint) *treeNode {
+	if len(treeNode.items) > 0 {
+		return treeNode
+	}
+
+	if imath.VectorDotProduct(treeNode.normalVec, dataPoint.Embedding) < 0 {
+		return treeNode.left.findLeaf(dataPoint)
+	} else {
+		return treeNode.right.findLeaf(dataPoint)
+	}
 }

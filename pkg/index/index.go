@@ -93,11 +93,12 @@ func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
 		return errShapeMismatch
 	}
 
+	vi.DataPoints = append(vi.DataPoints, dataPoint)
 	vi.IDToDataPointMapping[dataPoint.ID] = dataPoint
 
 	for i := 0; i < vi.NumberOfRoots; i++ {
 		root := vi.Roots[i]
-		root.insert(dataPoint)
+		root.insert(len(vi.DataPoints)-1, dataPoint)
 	}
 
 	return nil
