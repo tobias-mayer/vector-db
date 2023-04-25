@@ -79,3 +79,10 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	treeNode.index.IDToNodeMapping[leftChild.nodeID] = leftChild
 	treeNode.index.IDToNodeMapping[rightChild.nodeID] = rightChild
 }
+
+func (treeNode *treeNode) insert(vec *DataPoint) {
+	// 1. find the corresponding leaf node
+	// -> two cases:
+	//    - insert into leaf node
+	//    - split data into two new leaf nodes
+}

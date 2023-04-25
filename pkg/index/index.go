@@ -43,10 +43,6 @@ type VectorIndex struct {
 }
 
 func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint, distanceMeasure DistanceMeasure) (*VectorIndex, error) {
-	if len(dataPoints) < minDataPointsRequired {
-		return nil, errInsufficientData
-	}
-
 	for _, dp := range dataPoints {
 		if len(dp.Embedding) != numberOfDimensions {
 			return nil, errShapeMismatch
@@ -90,6 +86,21 @@ func (vi *VectorIndex) Build() {
 	for _, rootNode := range vi.Roots {
 		rootNode.build(vi.DataPoints)
 	}
+}
+
+func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
+	if len(dataPoint.Embedding) != vi.NumberOfDimensions {
+		return errShapeMismatch
+	}
+
+	vi.IDToDataPointMapping[dataPoint.ID] = dataPoint
+
+	for i := 0; i < vi.NumberOfRoots; i++ {
+		root := vi.Roots[i]
+		root.insert(dataPoint)
+	}
+
+	return nil
 }
 
 // nolint: funlen, cyclop
