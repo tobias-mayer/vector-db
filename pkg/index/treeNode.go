@@ -109,7 +109,7 @@ func (treeNode *treeNode) findLeaf(dataPoint *DataPoint) *treeNode {
 
 	if imath.VectorDotProduct(treeNode.normalVec, dataPoint.Embedding) < 0 {
 		return treeNode.left.findLeaf(dataPoint)
-	} else {
-		return treeNode.right.findLeaf(dataPoint)
 	}
+
+	return treeNode.right.findLeaf(dataPoint)
 }
