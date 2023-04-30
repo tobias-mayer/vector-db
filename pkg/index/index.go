@@ -97,8 +97,7 @@ func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
 	vi.IDToDataPointMapping[dataPoint.ID] = dataPoint
 
 	for i := 0; i < vi.NumberOfRoots; i++ {
-		root := vi.Roots[i]
-		root.insert(len(vi.DataPoints)-1, dataPoint)
+		vi.Roots[i].insert(dataPoint)
 	}
 
 	return nil

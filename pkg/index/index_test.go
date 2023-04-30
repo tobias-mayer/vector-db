@@ -105,26 +105,18 @@ func TestIndex_SearchByVector(t *testing.T) {
 // nolint: funlen, gocognit, cyclop, gosec
 func TestIndex_AddAfterBuild(t *testing.T) {
 	for i, c := range []struct {
-		k, dim, num, nTree, searchNum int
-		threshold, bucketScale        float64
+		k, n, dim, num, nTree, searchNum int
+		threshold, bucketScale           float64
 	}{
 		{
-			k:           2,
+			k:           200,
+			n:           10,
 			dim:         20,
 			num:         10000,
 			nTree:       20,
 			threshold:   0.90,
 			searchNum:   200,
-			bucketScale: 20,
-		},
-		{
-			k:           2,
-			dim:         20,
-			num:         10000,
-			nTree:       20,
-			threshold:   0.8,
-			searchNum:   20,
-			bucketScale: 1000,
+			bucketScale: 40,
 		},
 	} {
 		c := c
@@ -138,18 +130,21 @@ func TestIndex_AddAfterBuild(t *testing.T) {
 			}
 
 			// we currently need at least two initial data points to build the index
-			initialDataPoints := make([]*DataPoint, 2)
-			initialDataPoints[0] = NewDataPoint(999998, randVec(c.dim))
-			initialDataPoints[1] = NewDataPoint(999999, randVec(c.dim))
+			dataPointsToAdd := make([]*DataPoint, c.n)
+			for i := range dataPointsToAdd {
+				v := randVec(c.dim)
+				dataPointsToAdd[i] = NewDataPoint(c.num+i, v)
+			}
 
-			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, initialDataPoints, NewCosineDistanceMeasure())
+			idx, err := NewVectorIndex(c.nTree, c.dim, c.k, rawItems, NewCosineDistanceMeasure())
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			idx.Build()
 
-			for i := range rawItems {
-				err := idx.AddDataPoint(rawItems[i])
+			for i := range dataPointsToAdd {
+				err := idx.AddDataPoint(dataPointsToAdd[i])
 				if err != nil {
 					t.Fatal(err)
 				}

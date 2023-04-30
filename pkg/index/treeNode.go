@@ -81,23 +81,28 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	treeNode.index.IDToNodeMapping[rightChild.nodeID] = rightChild
 }
 
-func (treeNode *treeNode) insert(dpIndex int, dataPoint *DataPoint) {
-	// 1. find the corresponding leaf node
-	// -> two cases:
-	//    - insert into leaf node
-	//    - split data into two new leaf nodes
-
+func (treeNode *treeNode) insert(dataPoint *DataPoint) {
 	leaf := treeNode.findLeaf(dataPoint)
-	leaf.items = append(leaf.items, dpIndex)
+	leaf.items = append(leaf.items, dataPoint.ID)
 
 	if len(leaf.items) <= leaf.index.MaxItemsPerLeafNode {
+		// the datapoint still fits into the leaf node -> we don't need to do anything
 		return
 	}
 
-	// leaf.build()
+	// if the datapoint did not fit into the leaf, we have to split the leaf into two new nodes
+
+	items := make([]*DataPoint, len(leaf.items))
+	for i := range items {
+		items[i] = treeNode.index.IDToDataPointMapping[leaf.items[i]]
+	}
+
+	leaf.items = make([]int, 0)
+	leaf.build(items)
 }
 
 func (treeNode *treeNode) findLeaf(dataPoint *DataPoint) *treeNode {
+	// recursively finds the leaf node containing the given datapoint
 	if len(treeNode.items) > 0 {
 		return treeNode
 	}
