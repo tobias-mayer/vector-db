@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,6 +41,7 @@ type VectorIndex struct {
 	IDToDataPointMapping map[int]*DataPoint
 	DataPoints           []*DataPoint
 	DistanceMeasure      DistanceMeasure
+	Mutex                *sync.Mutex
 }
 
 func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint, distanceMeasure DistanceMeasure) (*VectorIndex, error) {
@@ -65,6 +67,7 @@ func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNo
 		IDToNodeMapping:      map[string]*treeNode{},
 		DataPoints:           dataPoints,
 		DistanceMeasure:      distanceMeasure,
+		Mutex:                &sync.Mutex{},
 	}, nil
 }
 
@@ -82,10 +85,19 @@ func (vi *VectorIndex) Build() {
 		vi.IDToNodeMapping[rootNode.nodeID] = rootNode
 	}
 
-	// this should be parallelized
+	var wg sync.WaitGroup
+
+	wg.Add(vi.NumberOfRoots)
+
 	for _, rootNode := range vi.Roots {
-		rootNode.build(vi.DataPoints)
+		rootNode := rootNode
+		go func() {
+			defer wg.Done()
+			rootNode.build(vi.DataPoints)
+		}()
 	}
+
+	wg.Wait()
 }
 
 func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
@@ -96,9 +108,19 @@ func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
 	vi.DataPoints = append(vi.DataPoints, dataPoint)
 	vi.IDToDataPointMapping[dataPoint.ID] = dataPoint
 
-	for i := 0; i < vi.NumberOfRoots; i++ {
-		vi.Roots[i].insert(dataPoint)
+	var wg sync.WaitGroup
+
+	wg.Add(vi.NumberOfRoots)
+
+	for _, rootNode := range vi.Roots {
+		rootNode := rootNode
+		go func() {
+			defer wg.Done()
+			rootNode.insert(dataPoint)
+		}()
 	}
+
+	wg.Wait()
 
 	return nil
 }

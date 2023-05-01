@@ -77,8 +77,11 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 	treeNode.right = rightChild
 
 	treeNode.items = make([]int, 0)
+
+	treeNode.index.Mutex.Lock()
 	treeNode.index.IDToNodeMapping[leftChild.nodeID] = leftChild
 	treeNode.index.IDToNodeMapping[rightChild.nodeID] = rightChild
+	treeNode.index.Mutex.Unlock()
 }
 
 func (treeNode *treeNode) insert(dataPoint *DataPoint) {
