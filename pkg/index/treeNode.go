@@ -68,6 +68,7 @@ func (treeNode *treeNode) buildSubtree(dataPoints []*DataPoint) {
 		return
 	}
 
+	// recursively build the left and right subtree
 	leftChild := newTreeNode(treeNode.index, treeNode.index.GetNormalVector(leftDataPoints))
 	leftChild.build(leftDataPoints)
 	treeNode.left = leftChild
@@ -94,7 +95,6 @@ func (treeNode *treeNode) insert(dataPoint *DataPoint) {
 	}
 
 	// if the datapoint did not fit into the leaf, we have to split the leaf into two new nodes
-
 	items := make([]*DataPoint, len(leaf.items))
 	for i := range items {
 		items[i] = treeNode.index.IDToDataPointMapping[leaf.items[i]]
@@ -105,7 +105,7 @@ func (treeNode *treeNode) insert(dataPoint *DataPoint) {
 }
 
 func (treeNode *treeNode) findLeaf(dataPoint *DataPoint) *treeNode {
-	// recursively finds the leaf node containing the given datapoint
+	// recursively finds the leaf node to which the given datapoint belongs
 	if len(treeNode.items) > 0 {
 		return treeNode
 	}

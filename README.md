@@ -9,9 +9,6 @@ A simple vector database that can be used to search for similar vectors in logar
 <a href="https://codecov.io/gh/tobias-mayer/vector-db" >
 <img src="https://codecov.io/gh/tobias-mayer/vector-db/branch/master/graph/badge.svg?token=V3XINHNCKM"/>
 </a>
-<!-- <img src="https://img.shields.io/github/v/release/tobias-mayer/vector-db" alt="drawing"/>
-<img src="https://img.shields.io/docker/pulls/tobias-mayer/vector-db" alt="drawing"/>
-<img src="https://img.shields.io/github/downloads/tobias-mayer/vector-db/total.svg" alt="drawing"/> -->
 </div>
 
 # Table of Contents
@@ -20,7 +17,6 @@ A simple vector database that can be used to search for similar vectors in logar
 - [Table of Contents](#table-of-contents)
 - [Examples](#examples)
     - [Hello World](#hello-world)
-    - [HTTP Transport](#http-transport)
 - [Makefile Targets](#makefile-targets)
 
 <!--te-->
@@ -38,16 +34,6 @@ vector: [0.01 0.88], distance: 0.995074
 vector: [0.009 0.95], distance: 0.994885
 vector: [0 0.91], distance: 0.993884
 ```
-
-### HTTP Transport
-```sh
-$> go run examples/db/http.go
-$> curl -d '{"vector":[0.1, 0.9], "numberOfNeighbors":3}' -H "Content-Type: application/json" -X POST http://localhost:8080/search
-Output:
-{"vectors":[[0.16,0.9],[0.014,0.99],[0.01,0.88]],"distances":[0.9978698605247033,0.9953458731615661,0.9950743923646557]}
-```
-
-
 
 # Makefile Targets
 ```sh

@@ -13,6 +13,7 @@ func NewCosineDistanceMeasure() DistanceMeasure {
 }
 
 func (cdm *cosineDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
+	// calculates the cosine distance between two vectors
 	if len(v1) != len(v2) || len(v1) == 0 {
 		return 0.0
 	}
@@ -37,13 +38,14 @@ func (cdm *cosineDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
 	return -dotProduct / (magA * magB)
 }
 
-type euclidianDistanceMeasure struct{}
+type euclideanDistanceMeasure struct{}
 
-func NewEuclidianDistanceMeasure() DistanceMeasure {
-	return &euclidianDistanceMeasure{}
+func NewEuclideanDistanceMeasure() DistanceMeasure {
+	return &euclideanDistanceMeasure{}
 }
 
-func (cdm *euclidianDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
+func (cdm *euclideanDistanceMeasure) CalcDistance(v1, v2 []float64) float64 {
+	// calculates the euclidean distance between two vectors
 	if len(v1) != len(v2) || len(v1) == 0 {
 		return 0.0
 	}

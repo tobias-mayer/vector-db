@@ -44,7 +44,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 }
 
 // nolint: dupl
-func TestEuclidianDistance_CalcDistance(t *testing.T) {
+func TestEuclideanDistance_CalcDistance(t *testing.T) {
 	for i, c := range []struct {
 		v1, v2 []float64
 		exp    float64
@@ -70,7 +70,7 @@ func TestEuclidianDistance_CalcDistance(t *testing.T) {
 			dp[0] = NewDataPoint(0, c.v1)
 			dp[1] = NewDataPoint(1, c.v2)
 
-			distanceMeasure := NewEuclidianDistanceMeasure()
+			distanceMeasure := NewEuclideanDistanceMeasure()
 			actual := distanceMeasure.CalcDistance(c.v1, c.v2)
 			itesting.AlmostEqual(t, c.exp, actual, 1e-2)
 		})
