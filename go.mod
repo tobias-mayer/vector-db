@@ -6,19 +6,19 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/daixiang0/gci v0.10.1
 	github.com/go-critic/go-critic v0.8.1
-	github.com/golangci/golangci-lint v1.53.0
+	github.com/golangci/golangci-lint v1.53.2
 	github.com/google/uuid v1.3.0
 	github.com/gotesttools/gotestfmt/v2 v2.4.1
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/tools v0.9.2
+	golang.org/x/tools v0.9.3
 	mvdan.cc/gofumpt v0.5.0
 )
 
 require (
 	github.com/4meepo/tagalign v1.2.2 // indirect
-	github.com/OpenPeeDeeP/depguard/v2 v2.0.1 // indirect
+	github.com/OpenPeeDeeP/depguard/v2 v2.1.0 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.1 // indirect
 	github.com/butuzov/mirror v1.1.0 // indirect
 	github.com/xen0n/gosmopolitan v1.2.1 // indirect
