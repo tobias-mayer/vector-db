@@ -17,64 +17,65 @@ const (
 	DefaultBuckets        = 10.0
 )
 
-type DataPoint struct {
-	ID        int
+type DataPoint[T comparable] struct {
+	ID        T
 	Embedding []float64
 }
 
-type SearchResult struct {
-	ID       int
+type SearchResult[T comparable] struct {
+	ID       T
 	Distance float64
 	Vector   []float64
 }
 
-func NewDataPoint(id int, embedding []float64) *DataPoint {
-	return &DataPoint{id, embedding}
+func NewDataPoint[T comparable](id T, embedding []float64) *DataPoint[T] {
+	return &DataPoint[T]{id, embedding}
 }
 
-type VectorIndex struct {
+// T is the type of the identifier used to identify data points
+type VectorIndex[T comparable] struct {
 	NumberOfRoots        int
 	NumberOfDimensions   int
 	MaxItemsPerLeafNode  int
-	Roots                []*treeNode
-	IDToNodeMapping      map[string]*treeNode
-	IDToDataPointMapping map[int]*DataPoint
-	DataPoints           []*DataPoint
+	Roots                []*treeNode[T]
+	IDToTreeNodeMapping  map[string]*treeNode[T]
+	IDToDataPointMapping map[T]*DataPoint[T]
+	DataPoints           []*DataPoint[T]
 	DistanceMeasure      DistanceMeasure
 	Mutex                *sync.Mutex
 }
 
-func NewVectorIndex(numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint, distanceMeasure DistanceMeasure) (*VectorIndex, error) {
+func NewVectorIndex[T comparable](numberOfRoots int, numberOfDimensions int, maxIetmsPerLeafNode int, dataPoints []*DataPoint[T], distanceMeasure DistanceMeasure) (*VectorIndex[T], error) {
 	for _, dp := range dataPoints {
 		if len(dp.Embedding) != numberOfDimensions {
 			return nil, errShapeMismatch
 		}
 	}
 
-	idToDataPointMapping := make(map[int]*DataPoint, len(dataPoints))
+	idToDataPointMapping := make(map[T]*DataPoint[T], len(dataPoints))
 	for _, dp := range dataPoints {
 		idToDataPointMapping[dp.ID] = dp
 	}
 
 	rand.Seed(time.Now().UnixNano())
 
-	return &VectorIndex{
+	return &VectorIndex[T]{
 		NumberOfRoots:        numberOfRoots,
 		NumberOfDimensions:   numberOfDimensions,
 		MaxItemsPerLeafNode:  maxIetmsPerLeafNode,
-		Roots:                make([]*treeNode, numberOfRoots),
+		Roots:                make([]*treeNode[T], numberOfRoots),
 		IDToDataPointMapping: idToDataPointMapping,
-		IDToNodeMapping:      map[string]*treeNode{},
+		IDToTreeNodeMapping:  map[string]*treeNode[T]{},
 		DataPoints:           dataPoints,
 		DistanceMeasure:      distanceMeasure,
 		Mutex:                &sync.Mutex{},
 	}, nil
 }
 
-func (vi *VectorIndex) Build() {
+func (vi *VectorIndex[T]) Build() {
 	for i := 0; i < vi.NumberOfRoots; i++ {
 		normalVec := vi.GetNormalVector(vi.DataPoints)
-		rootNode := &treeNode{
+		rootNode := &treeNode[T]{
 			nodeID:    uuid.New().String(),
 			index:     vi,
 			normalVec: normalVec,
@@ -82,7 +83,7 @@ func (vi *VectorIndex) Build() {
 			right:     nil,
 		}
 		vi.Roots[i] = rootNode
-		vi.IDToNodeMapping[rootNode.nodeID] = rootNode
+		vi.IDToTreeNodeMapping[rootNode.nodeID] = rootNode
 	}
 
 	var wg sync.WaitGroup
@@ -100,7 +101,7 @@ func (vi *VectorIndex) Build() {
 	wg.Wait()
 }
 
-func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
+func (vi *VectorIndex[T]) AddDataPoint(dataPoint *DataPoint[T]) error {
 	if len(dataPoint.Embedding) != vi.NumberOfDimensions {
 		return errShapeMismatch
 	}
@@ -126,13 +127,13 @@ func (vi *VectorIndex) AddDataPoint(dataPoint *DataPoint) error {
 }
 
 // nolint: funlen, cyclop
-func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) (*[]SearchResult, error) {
+func (vi *VectorIndex[T]) SearchByVector(input []float64, searchNum int, numberOfBuckets float64) (*[]SearchResult[T], error) {
 	if len(input) != vi.NumberOfDimensions {
 		return nil, errShapeMismatch
 	}
 
 	totalBucketSize := int(float64(searchNum) * numberOfBuckets)
-	annMap := make(map[int]struct{}, totalBucketSize)
+	annMap := make(map[T]struct{}, totalBucketSize)
 	pq := priorityQueue{}
 
 	// insert root nodes into pq
@@ -145,7 +146,7 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 	// search all trees until we found enough data points
 	for pq.Len() > 0 && len(annMap) < totalBucketSize {
 		q, _ := heap.Pop(&pq).(*queueItem)
-		n, ok := vi.IDToNodeMapping[q.value]
+		n, ok := vi.IDToTreeNodeMapping[q.value]
 
 		if !ok {
 			return nil, errInvalidIndex
@@ -171,8 +172,8 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 	}
 
 	// calculate actual distances
-	idToDist := make(map[int]float64, len(annMap))
-	ann := make([]int, 0, len(annMap))
+	idToDist := make(map[T]float64, len(annMap))
+	ann := make([]T, 0, len(annMap))
 
 	for id := range annMap {
 		ann = append(ann, id)
@@ -189,15 +190,15 @@ func (vi *VectorIndex) SearchByVector(input []float64, searchNum int, numberOfBu
 		ann = ann[:searchNum]
 	}
 
-	searchResults := make([]SearchResult, len(ann))
+	searchResults := make([]SearchResult[T], len(ann))
 	for i, id := range ann {
-		searchResults[i] = SearchResult{ID: id, Distance: math.Abs(idToDist[id]), Vector: vi.IDToDataPointMapping[id].Embedding}
+		searchResults[i] = SearchResult[T]{ID: id, Distance: math.Abs(idToDist[id]), Vector: vi.IDToDataPointMapping[id].Embedding}
 	}
 
 	return &searchResults, nil
 }
 
-func (vi *VectorIndex) SearchByItem() ([]int, error) {
+func (vi *VectorIndex[T]) SearchByItem() ([]int, error) {
 	return nil, nil
 }
 
@@ -211,7 +212,7 @@ const (
 // GetNormalVector calculates the normal vector of a hyperplane that separates
 // the two clusters of data points.
 // nolint: funlen, gocognit, cyclop, gosec
-func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
+func (vi *VectorIndex[T]) GetNormalVector(dataPoints []*DataPoint[T]) []float64 {
 	lvs := len(dataPoints)
 	// Initialize two centroids randomly from the data points.
 	c0, c1 := vi.getRandomCentroids(dataPoints)
@@ -292,7 +293,7 @@ func (vi *VectorIndex) GetNormalVector(dataPoints []*DataPoint) []float64 {
 }
 
 // nolint: gosec
-func (vi *VectorIndex) getRandomCentroids(dataPoints []*DataPoint) ([]float64, []float64) {
+func (vi *VectorIndex[T]) getRandomCentroids(dataPoints []*DataPoint[T]) ([]float64, []float64) {
 	lvs := len(dataPoints)
 	k := rand.Intn(lvs)
 	l := rand.Intn(lvs - 1)

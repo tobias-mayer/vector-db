@@ -32,7 +32,7 @@ func TestCosineDistance_CalcDistance(t *testing.T) {
 		c := c
 
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			dp := make([]*DataPoint, 2)
+			dp := make([]*DataPoint[int], 2)
 			dp[0] = NewDataPoint(0, c.v1)
 			dp[1] = NewDataPoint(1, c.v2)
 
@@ -66,7 +66,7 @@ func TestEuclideanDistance_CalcDistance(t *testing.T) {
 		c := c
 
 		t.Run(fmt.Sprintf("%d-th case", i), func(t *testing.T) {
-			dp := make([]*DataPoint, 2)
+			dp := make([]*DataPoint[int], 2)
 			dp[0] = NewDataPoint(0, c.v1)
 			dp[1] = NewDataPoint(1, c.v2)
 

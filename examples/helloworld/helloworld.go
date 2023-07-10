@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tobias-mayer/vector-db/internal/log"
 	"github.com/tobias-mayer/vector-db/pkg/index"
 )
 
 func main() {
-	data := []*index.DataPoint{
+	data := []*index.DataPoint[int]{
 		index.NewDataPoint(0, []float64{0.16, 0.9}),
 		index.NewDataPoint(1, []float64{0.5, 0.5}),
 		index.NewDataPoint(2, []float64{0.014, 0.99}),
@@ -32,9 +31,6 @@ func main() {
 		index.NewDataPoint(19, []float64{0.91, 0.12}),
 	}
 
-	logger := log.New()
-	logger.Info("Test")
-
 	index, err := index.NewVectorIndex(1, 2, 2, data, index.NewCosineDistanceMeasure())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
@@ -51,6 +47,6 @@ func main() {
 
 	fmt.Println("The following vectors are the closest neighbors based on cosine similarity:")
 	for _, searchResult := range *searchResults {
-		fmt.Println(fmt.Sprintf("vector: %v, distance: %f", data[searchResult.ID].Embedding, searchResult.Distance))
+		fmt.Println(fmt.Sprintf("id: %v, vector: %v, distance: %f", searchResult.ID, data[searchResult.ID].Embedding, searchResult.Distance))
 	}
 }
