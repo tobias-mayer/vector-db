@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-	github.com/daixiang0/gci v0.10.1
+	github.com/daixiang0/gci v0.11.0
 	github.com/go-critic/go-critic v0.8.2
 	github.com/golangci/golangci-lint v1.53.3
 	github.com/google/uuid v1.3.0
