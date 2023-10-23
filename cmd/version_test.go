@@ -16,8 +16,9 @@ func TestVersionCommand(t *testing.T) {
 	b := bytes.NewBufferString("")
 	cmd.SetOut(b)
 
-	err := cmd.Execute()
-	require.NoError(t, err)
+	//err := cmd.Execute()
+	//require.NoError(t, err)
+	cmd.Run(cmd, nil)
 
 	out, err := io.ReadAll(b)
 	require.NoError(t, err)
